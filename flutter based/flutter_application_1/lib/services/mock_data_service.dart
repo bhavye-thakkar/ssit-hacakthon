@@ -29,21 +29,24 @@ class MockDataService extends ChangeNotifier {
   void _initializeMockData() {
     // Initialize mock waste bins
     _wasteBins.addAll(_generateMockBins());
-    
+
     // Initialize mock routes
     _routes.addAll(_generateMockRoutes());
-    
+
     // Initialize mock alerts
     _alerts.addAll(_generateMockAlerts());
-    
+
     // Initialize mock analytics
     _analytics.addAll(_generateMockAnalytics());
-    
+
     // Initialize mock historical data
     _historicalData.addAll(_generateMockHistoricalData());
-    
+
     // Initialize mock citizen reports
     _reports.addAll(_generateMockReports());
+
+    // Add some predefined users
+    _addPredefinedUsers();
   }
 
   void _startRealTimeUpdates() {
@@ -394,6 +397,60 @@ class MockDataService extends ChangeNotifier {
   void addCitizenReport(CitizenReport report) {
     _reports.add(report);
     notifyListeners();
+  }
+
+  void _addPredefinedUsers() {
+    // Add some predefined users
+    final predefinedUsers = [
+      {
+        'name': 'John Smith',
+        'email': 'john.smith@example.com',
+        'phone': '+919876543210',
+      },
+      {
+        'name': 'Sarah Johnson',
+        'email': 'sarah.johnson@example.com',
+        'phone': '+919876543211',
+      },
+      {
+        'name': 'Michael Brown',
+        'email': 'michael.brown@example.com',
+        'phone': '+919876543212',
+      },
+      {
+        'name': 'Emily Davis',
+        'email': 'emily.davis@example.com',
+        'phone': '+919876543213',
+      },
+      {
+        'name': 'David Wilson',
+        'email': 'david.wilson@example.com',
+        'phone': '+919876543214',
+      },
+    ];
+
+    for (int i = 0; i < predefinedUsers.length; i++) {
+      final user = predefinedUsers[i];
+      _reports.add(CitizenReport(
+        id: 'user_${i + 100}',
+        citizenId: 'citizen_${i + 100}',
+        citizenName: user['name']!,
+        citizenEmail: user['email']!,
+        citizenPhone: user['phone']!,
+        type: ReportType.binOverflow,
+        title: 'User Registration',
+        description: 'Predefined user registered in the system',
+        latitude: 12.9716,
+        longitude: 77.5946,
+        address: 'User Location',
+        imageUrls: [],
+        status: ReportStatus.submitted,
+        priority: ReportPriority.medium,
+        createdAt: DateTime.now().subtract(Duration(days: i)),
+        updates: [],
+        rating: 0.0,
+      ));
+    }
   }
 }
 
