@@ -52,7 +52,7 @@ This is a **frontend-only** implementation with:
 
 1. **Clone the repository**
    ```bash
-   git clone <repository-url>
+   git clone https://github.com/bhavye-thakkar/ssit-hacakthon.git
    cd flutter_application_1
    ```
 
