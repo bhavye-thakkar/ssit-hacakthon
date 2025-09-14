@@ -133,3 +133,4 @@ enum WasteType {
   textile,
   other,
 }
+
