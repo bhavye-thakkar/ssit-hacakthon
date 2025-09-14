@@ -103,7 +103,7 @@ const AuthPage = ({ onLogin }) => {
         avatar: `https://api.dicebear.com/7.x/avataaars/svg?seed=${formData.email}`
       };
       
-      localStorage.setItem('swachhgrid_user', JSON.stringify(user));
+      localStorage.setItem('swachagrid_user', JSON.stringify(user));
       onLogin(user);
       setLoading(false);
     }, 1500);
@@ -136,7 +136,7 @@ const AuthPage = ({ onLogin }) => {
             </div>
             <div>
               <h1 className="text-4xl font-bold bg-gradient-to-r from-green-600 to-blue-600 bg-clip-text text-transparent">
-                SwachhGrid
+                Swacha Grid
               </h1>
               <p className="text-muted-foreground text-lg">Smart Waste Management for Smart Cities</p>
             </div>
@@ -187,7 +187,7 @@ const AuthPage = ({ onLogin }) => {
               )}
             </CardTitle>
             <p className="text-muted-foreground">
-              {isLogin ? 'Sign in to your SwachhGrid account' : 'Join SwachhGrid today'}
+              {isLogin ? 'Sign in to your Swacha Grid account' : 'Join Swacha Grid today'}
             </p>
           </CardHeader>
           
@@ -324,7 +324,7 @@ const UserHeader = ({ user, onLogout, darkMode, setDarkMode, onStartDemo }) => (
           </div>
           <div>
             <h1 className="text-2xl font-bold bg-gradient-to-r from-green-600 to-blue-600 bg-clip-text text-transparent">
-              SwachhGrid
+              Swacha Grid
             </h1>
             <p className="text-xs text-muted-foreground">Smart Waste Management</p>
           </div>
@@ -459,7 +459,7 @@ const LoadingSpinner = () => (
       <div className="absolute inset-0 w-16 h-16 border-4 border-transparent border-t-emerald-500 rounded-full animate-spin" style={{animationDelay: '0.5s'}}></div>
     </div>
     <div className="ml-4">
-      <div className="text-lg font-semibold animate-pulse">Loading SwachhGrid...</div>
+      <div className="text-lg font-semibold animate-pulse">Loading Swacha Grid...</div>
       <div className="text-sm text-muted-foreground">Initializing smart city systems</div>
     </div>
   </div>
@@ -1024,7 +1024,7 @@ const PresentationMode = ({ isActive, onClose, stats, bins }) => {
             </div>
             <div>
               <h1 className="text-3xl font-bold bg-gradient-to-r from-green-600 to-blue-600 bg-clip-text text-transparent">
-                SwachhGrid Presentation
+                Swacha Grid Presentation
               </h1>
               <p className="text-muted-foreground">Smart Waste Management for Smart Cities</p>
             </div>
@@ -1155,7 +1155,7 @@ function App() {
 
   // Check for existing user session on load
   useEffect(() => {
-    const savedUser = localStorage.getItem('swachhgrid_user');
+    const savedUser = localStorage.getItem('swachagrid_user');
     if (savedUser) {
       setUser(JSON.parse(savedUser));
     }
@@ -1177,7 +1177,7 @@ function App() {
   };
 
   const handleLogout = () => {
-    localStorage.removeItem('swachhgrid_user');
+    localStorage.removeItem('swachagrid_user');
     setUser(null);
   };
 
