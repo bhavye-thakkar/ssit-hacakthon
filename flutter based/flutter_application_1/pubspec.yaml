@@ -47,6 +47,10 @@ dependencies:
   # Animations
   flutter_animate: ^4.5.0
 
+  # Maps and Location
+  google_maps_flutter: ^2.6.0
+  flutter_polyline_points: ^2.0.0
+
 dev_dependencies:
   flutter_test:
     sdk: flutter

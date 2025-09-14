@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'screens/dashboard_screen.dart';
+import 'package:swachhgrid/screens/main_screen.dart';
 import 'services/mock_data_service.dart';
 
 void main() {
@@ -48,7 +48,7 @@ class SwachhGridApp extends StatelessWidget {
           ),
         ),
       ),
-      home: const DashboardScreen(),
+      home: const MainScreen(),
     );
   }
 }
