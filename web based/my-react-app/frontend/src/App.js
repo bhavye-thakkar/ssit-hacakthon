@@ -93,33 +93,84 @@ const AuthPage = ({ onLogin }) => {
     e.preventDefault();
     setLoading(true);
     
-    // Simulate authentication (in real app, this would be API calls)
-    setTimeout(() => {
-      const user = {
-        id: Math.random().toString(36).substr(2, 9),
-        name: formData.name || formData.email.split('@')[0],
-        email: formData.email,
-        role: formData.email.includes('admin') ? 'admin' : 'user',
-        avatar: `https://api.dicebear.com/7.x/avataaars/svg?seed=${formData.email}`
-      };
+    // Basic validation
+    if (!formData.email || !formData.password) {
+      alert('Please fill in all required fields.');
+      setLoading(false);
+      return;
+    }
+    
+    if (!isLogin && !formData.name) {
+      alert('Please enter your full name.');
+      setLoading(false);
+      return;
+    }
+    
+    if (!isLogin && formData.password.length < 6) {
+      alert('Password must be at least 6 characters long.');
+      setLoading(false);
+      return;
+    }
+    
+    try {
+      let response;
+      if (isLogin) {
+        // Login request
+        response = await axios.post(`${API}/auth/login`, {
+          email: formData.email,
+          password: formData.password
+        });
+      } else {
+        // Register request
+        response = await axios.post(`${API}/auth/register`, {
+          name: formData.name,
+          email: formData.email,
+          password: formData.password,
+          role: formData.role
+        });
+      }
       
+      const { user, token } = response.data;
+      
+      // Store user data and token
       localStorage.setItem('swachagrid_user', JSON.stringify(user));
+      localStorage.setItem('swachagrid_token', token);
+      
       onLogin(user);
       setLoading(false);
-    }, 1500);
+    } catch (error) {
+      console.error('Authentication error:', error);
+      alert(error.response?.data?.detail || 'Authentication failed. Please try again.');
+      setLoading(false);
+    }
   };
 
-  const demoLogin = (role) => {
-    const demoUser = {
-      id: Math.random().toString(36).substr(2, 9),
-      name: role === 'admin' ? 'Admin User' : 'Regular User',
-      email: role === 'admin' ? 'admin@swachhgrid.com' : 'user@swachhgrid.com',
-      role: role,
-      avatar: `https://api.dicebear.com/7.x/avataaars/svg?seed=${role}`
-    };
-    
-    localStorage.setItem('swachhgrid_user', JSON.stringify(demoUser));
-    onLogin(demoUser);
+  const demoLogin = async (role) => {
+    try {
+      const credentials = role === 'admin' 
+        ? { email: 'admin@swachhgrid.com', password: 'admin123' }
+        : { email: 'user@swachhgrid.com', password: 'user123' };
+      
+      const response = await axios.post(`${API}/auth/login`, credentials);
+      const { user, token } = response.data;
+      
+      localStorage.setItem('swachagrid_user', JSON.stringify(user));
+      localStorage.setItem('swachagrid_token', token);
+      onLogin(user);
+    } catch (error) {
+      console.error('Demo login error:', error);
+      // Fallback to demo credentials if API fails
+      const demoUser = {
+        id: Math.random().toString(36).substr(2, 9),
+        name: role === 'admin' ? 'Admin User' : 'Regular User',
+        email: role === 'admin' ? 'admin@swachhgrid.com' : 'user@swachhgrid.com',
+        role: role,
+        avatar: `https://api.dicebear.com/7.x/avataaars/svg?seed=${role}`
+      };
+      
+      localStorage.setItem('swachagrid_user', JSON.stringify(demoUser));
+      onLogin(demoUser);
+    }
   };
 
   return (
@@ -210,6 +261,10 @@ const AuthPage = ({ onLogin }) => {
                   <User className="w-4 h-4 mr-2" />
                   User Demo
                 </Button>
+              </div>
+              <div className="text-xs text-muted-foreground text-center space-y-1">
+                <p><strong>Admin:</strong> admin@swachhgrid.com / admin123</p>
+                <p><strong>User:</strong> user@swachhgrid.com / user123</p>
               </div>
             </div>
 
@@ -1178,6 +1233,7 @@ function App() {
 
   const handleLogout = () => {
     localStorage.removeItem('swachagrid_user');
+    localStorage.removeItem('swachagrid_token');
     setUser(null);
   };
 

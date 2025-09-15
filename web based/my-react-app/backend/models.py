@@ -51,6 +51,30 @@ class BinUpdate(BaseModel):
     status: Optional[str] = None
     description: Optional[str] = None
 
+# Authentication Models
+class User(BaseModel):
+    id: str
+    name: str
+    email: str
+    role: str  # 'admin' or 'user'
+    avatar: Optional[str] = None
+    created_at: datetime
+
+class UserCreate(BaseModel):
+    name: str
+    email: str
+    password: str
+    role: str = 'user'
+
+class UserLogin(BaseModel):
+    email: str
+    password: str
+
+class LoginResponse(BaseModel):
+    user: User
+    token: str
+    message: str
+
 class ConnectionManager:
     def __init__(self):
         self.active_connections: List[WebSocket] = []

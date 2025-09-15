@@ -1,12 +1,14 @@
 import uuid
+import hashlib
 from datetime import datetime, timedelta
-from typing import Dict, List
+from typing import Dict, List, Optional
 import random
 import math
 
 # In-memory database simulation
 bins_db: Dict[str, Dict] = {}
 alerts_db: Dict[str, Dict] = {}
+users_db: Dict[str, Dict] = {}
 
 def generate_demo_bins():
     """Generate demo waste bins data"""
@@ -201,3 +203,80 @@ def get_dashboard_stats():
         "average_fill_level": round(average_fill_level, 1),
         "bins_needing_collection": bins_needing_collection
     }
+
+# User Authentication Functions
+def hash_password(password: str) -> str:
+    """Simple password hashing for demo purposes"""
+    return hashlib.sha256(password.encode()).hexdigest()
+
+def verify_password(password: str, hashed: str) -> bool:
+    """Verify password against hash"""
+    return hash_password(password) == hashed
+
+def create_user(user_data: Dict) -> Dict:
+    """Create a new user"""
+    user_id = str(uuid.uuid4())
+    hashed_password = hash_password(user_data["password"])
+    
+    new_user = {
+        "id": user_id,
+        "name": user_data["name"],
+        "email": user_data["email"],
+        "password": hashed_password,
+        "role": user_data.get("role", "user"),
+        "avatar": f"https://api.dicebear.com/7.x/avataaars/svg?seed={user_data['email']}",
+        "created_at": datetime.now()
+    }
+    
+    users_db[user_id] = new_user
+    return new_user
+
+def get_user_by_email(email: str) -> Optional[Dict]:
+    """Get user by email"""
+    for user in users_db.values():
+        if user["email"] == email:
+            return user
+    return None
+
+def authenticate_user(email: str, password: str) -> Optional[Dict]:
+    """Authenticate user with email and password"""
+    user = get_user_by_email(email)
+    if user and verify_password(password, user["password"]):
+        # Return user without password
+        return {k: v for k, v in user.items() if k != "password"}
+    return None
+
+def init_demo_users():
+    """Initialize demo users for the system"""
+    demo_users = [
+        {
+            "name": "Admin User",
+            "email": "admin@swachhgrid.com",
+            "password": "admin123",
+            "role": "admin"
+        },
+        {
+            "name": "Regular User",
+            "email": "user@swachhgrid.com", 
+            "password": "user123",
+            "role": "user"
+        },
+        {
+            "name": "Demo Admin",
+            "email": "demo@admin.com",
+            "password": "demo123",
+            "role": "admin"
+        },
+        {
+            "name": "Demo User",
+            "email": "demo@user.com",
+            "password": "demo123",
+            "role": "user"
+        }
+    ]
+    
+    for user_data in demo_users:
+        if not get_user_by_email(user_data["email"]):
+            create_user(user_data)
+    
+    return len(demo_users)

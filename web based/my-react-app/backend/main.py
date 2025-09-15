@@ -6,7 +6,7 @@ import json
 from datetime import datetime
 import uvicorn
 
-from routes import bins, alerts, dashboard, routes
+from routes import bins, alerts, dashboard, routes, auth
 from database import init_demo_data
 from models import ConnectionManager
 
@@ -25,6 +25,7 @@ app.add_middleware(
 manager = ConnectionManager()
 
 # Include routers
+app.include_router(auth.router, prefix="/api", tags=["authentication"])
 app.include_router(bins.router, prefix="/api", tags=["bins"])
 app.include_router(alerts.router, prefix="/api", tags=["alerts"])
 app.include_router(dashboard.router, prefix="/api", tags=["dashboard"])
@@ -38,8 +39,15 @@ async def root():
 async def initialize_demo_data():
     """Initialize demo data for the application"""
     try:
+        from database import init_demo_users
+        # Initialize both demo data and demo users
         result = init_demo_data()
-        return {"message": "Demo data initialized successfully", "data": result}
+        user_count = init_demo_users()
+        return {
+            "message": "Demo data and users initialized successfully", 
+            "data": result,
+            "users_created": user_count
+        }
     except Exception as e:
         return JSONResponse(
             status_code=500,
