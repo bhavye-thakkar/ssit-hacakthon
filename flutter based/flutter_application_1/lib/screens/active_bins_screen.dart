@@ -8,6 +8,7 @@ class ActiveBinsScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    debugPrint('ActiveBinsScreen: Building widget');
     return Scaffold(
       appBar: AppBar(
         title: const Text('Active Bins Monitoring'),
@@ -16,10 +17,13 @@ class ActiveBinsScreen extends StatelessWidget {
       body: Consumer<MockDataService>(
         builder: (context, mockDataService, child) {
           final bins = mockDataService.wasteBins;
+          debugPrint('ActiveBinsScreen: Total bins: ${bins.length}');
           final activeBins = bins.where((bin) =>
             bin.status != BinStatus.offline &&
             bin.status != BinStatus.maintenance
           ).toList();
+          debugPrint('ActiveBinsScreen: Active bins: ${activeBins.length}');
+          debugPrint('ActiveBinsScreen: Bin statuses: ${bins.map((b) => b.status.toString()).toList()}');
 
           return Column(
             children: [
@@ -54,16 +58,27 @@ class ActiveBinsScreen extends StatelessWidget {
                       unselectedLabelColor: Colors.grey,
                       indicatorColor: Color(0xFF4CAF50),
                     ),
-                    SizedBox(
-                      height: MediaQuery.of(context).size.height - 200,
-                      child: TabBarView(
-                        children: [
-                          _buildBinsList(activeBins),
-                          _buildBinsList(activeBins.where((b) => b.status == BinStatus.normal).toList()),
-                          _buildBinsList(activeBins.where((b) => b.status == BinStatus.full).toList()),
-                          _buildBinsList(activeBins.where((b) => b.status == BinStatus.overflowing).toList()),
-                        ],
-                      ),
+                    Builder(
+                      builder: (context) {
+                        final screenHeight = MediaQuery.of(context).size.height;
+                        final appBarHeight = Scaffold.of(context).appBarMaxHeight ?? kToolbarHeight;
+                        final tabBarHeight = kTextTabBarHeight;
+                        final summaryHeight = 80.0; // Approximate height of summary container
+                        final availableHeight = screenHeight - appBarHeight - tabBarHeight - summaryHeight - 100; // Extra padding
+                        debugPrint('ActiveBinsScreen: Screen height: $screenHeight');
+                        debugPrint('ActiveBinsScreen: Available height: $availableHeight');
+                        return SizedBox(
+                          height: availableHeight > 0 ? availableHeight : 300, // Minimum height fallback
+                          child: TabBarView(
+                            children: [
+                              _buildBinsList(activeBins),
+                              _buildBinsList(activeBins.where((b) => b.status == BinStatus.normal).toList()),
+                              _buildBinsList(activeBins.where((b) => b.status == BinStatus.full).toList()),
+                              _buildBinsList(activeBins.where((b) => b.status == BinStatus.overflowing).toList()),
+                            ],
+                          ),
+                        );
+                      },
                     ),
                   ],
                 ),
@@ -95,7 +110,9 @@ class ActiveBinsScreen extends StatelessWidget {
   }
 
   Widget _buildBinsList(List<WasteBin> bins) {
+    debugPrint('ActiveBinsScreen: Building bins list with ${bins.length} bins');
     if (bins.isEmpty) {
+      debugPrint('ActiveBinsScreen: No bins in this category');
       return const Center(
         child: Text('No bins in this category'),
       );

@@ -16,16 +16,61 @@ class _AnalyticsChartsState extends State<AnalyticsCharts>
     with TickerProviderStateMixin {
   late TabController _tabController;
   String _selectedTimeRange = '7d';
+  late AnimationController _barAnimationController;
+  late Animation<double> _barAnimation;
+  late AnimationController _lineAnimationController;
+  late Animation<double> _lineAnimation;
 
   @override
   void initState() {
     super.initState();
     _tabController = TabController(length: 4, vsync: this);
+    _tabController.addListener(_onTabChanged);
+
+    // Bar chart animation
+    _barAnimationController = AnimationController(
+      duration: const Duration(seconds: 2),
+      vsync: this,
+    );
+    _barAnimation = Tween<double>(begin: 0, end: 1).animate(
+      CurvedAnimation(parent: _barAnimationController, curve: Curves.easeOut),
+    );
+
+    // Line chart animation
+    _lineAnimationController = AnimationController(
+      duration: const Duration(seconds: 3),
+      vsync: this,
+    );
+    _lineAnimation = Tween<double>(begin: 0, end: 1).animate(
+      CurvedAnimation(parent: _lineAnimationController, curve: Curves.easeInOut),
+    );
+
+    // Start animations when widget is built
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _startAnimations();
+    });
+  }
+
+  void _onTabChanged() {
+    // Restart animations when switching to overview or trends tab
+    if (_tabController.index == 0 || _tabController.index == 1) {
+      _startAnimations();
+    }
+  }
+
+  void _startAnimations() {
+    _barAnimationController.reset();
+    _lineAnimationController.reset();
+    _barAnimationController.forward();
+    _lineAnimationController.forward();
   }
 
   @override
   void dispose() {
+    _tabController.removeListener(_onTabChanged);
     _tabController.dispose();
+    _barAnimationController.dispose();
+    _lineAnimationController.dispose();
     super.dispose();
   }
 
@@ -260,54 +305,59 @@ class _AnalyticsChartsState extends State<AnalyticsCharts>
             const SizedBox(height: 16),
             SizedBox(
               height: 200,
-              child: BarChart(
-                BarChartData(
-                  alignment: BarChartAlignment.spaceAround,
-                  maxY: statusCounts.values.isEmpty ? 1 : statusCounts.values.reduce((a, b) => a > b ? a : b).toDouble(),
-                  barTouchData: BarTouchData(enabled: false),
-                  titlesData: FlTitlesData(
-                    show: true,
-                    rightTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
-                    topTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
-                    bottomTitles: AxisTitles(
-                      sideTitles: SideTitles(
-                        showTitles: true,
-                        getTitlesWidget: (value, meta) {
-                          final status = BinStatus.values[value.toInt()];
-                          return Text(
-                            status.name.substring(0, 1).toUpperCase(),
-                            style: const TextStyle(fontSize: 10),
-                          );
-                        },
-                      ),
-                    ),
-                    leftTitles: AxisTitles(
-                      sideTitles: SideTitles(
-                        showTitles: true,
-                        reservedSize: 40,
-                        getTitlesWidget: (value, meta) {
-                          return Text(
-                            value.toInt().toString(),
-                            style: const TextStyle(fontSize: 10),
-                          );
-                        },
-                      ),
-                    ),
-                  ),
-                  borderData: FlBorderData(show: false),
-                  barGroups: statusCounts.entries.map((entry) {
-                    return BarChartGroupData(
-                      x: entry.key.index,
-                      barRods: [
-                        BarChartRodData(
-                          toY: entry.value.toDouble(),
-                          color: _getStatusColor(entry.key),
-                          width: 20,
+              child: AnimatedBuilder(
+                animation: _barAnimation,
+                builder: (context, child) {
+                  return BarChart(
+                    BarChartData(
+                      alignment: BarChartAlignment.spaceAround,
+                      maxY: statusCounts.values.isEmpty ? 1 : statusCounts.values.reduce((a, b) => a > b ? a : b).toDouble(),
+                      barTouchData: BarTouchData(enabled: false),
+                      titlesData: FlTitlesData(
+                        show: true,
+                        rightTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                        topTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                        bottomTitles: AxisTitles(
+                          sideTitles: SideTitles(
+                            showTitles: true,
+                            getTitlesWidget: (value, meta) {
+                              final status = BinStatus.values[value.toInt()];
+                              return Text(
+                                status.name.substring(0, 1).toUpperCase(),
+                                style: const TextStyle(fontSize: 10),
+                              );
+                            },
+                          ),
                         ),
-                      ],
-                    );
-                  }).toList(),
-                ),
+                        leftTitles: AxisTitles(
+                          sideTitles: SideTitles(
+                            showTitles: true,
+                            reservedSize: 40,
+                            getTitlesWidget: (value, meta) {
+                              return Text(
+                                value.toInt().toString(),
+                                style: const TextStyle(fontSize: 10),
+                              );
+                            },
+                          ),
+                        ),
+                      ),
+                      borderData: FlBorderData(show: false),
+                      barGroups: statusCounts.entries.map((entry) {
+                        return BarChartGroupData(
+                          x: entry.key.index,
+                          barRods: [
+                            BarChartRodData(
+                              toY: entry.value.toDouble() * _barAnimation.value,
+                              color: _getStatusColor(entry.key),
+                              width: 20,
+                            ),
+                          ],
+                        );
+                      }).toList(),
+                    ),
+                  );
+                },
               ),
             ),
           ],
@@ -489,58 +539,79 @@ class _AnalyticsChartsState extends State<AnalyticsCharts>
             const SizedBox(height: 16),
             SizedBox(
               height: 200,
-              child: LineChart(
-                LineChartData(
-                  gridData: const FlGridData(show: true),
-                  titlesData: FlTitlesData(
-                    show: true,
-                    rightTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
-                    topTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
-                    bottomTitles: AxisTitles(
-                      sideTitles: SideTitles(
-                        showTitles: true,
-                        getTitlesWidget: (value, meta) {
-                          final index = value.toInt();
-                          if (index >= 0 && index < labels.length) {
-                            return Text(
-                              labels[index],
-                              style: const TextStyle(fontSize: 10),
-                            );
-                          }
-                          return const Text('');
-                        },
-                      ),
-                    ),
-                    leftTitles: AxisTitles(
-                      sideTitles: SideTitles(
-                        showTitles: true,
-                        reservedSize: 40,
-                        getTitlesWidget: (value, meta) {
-                          return Text(
-                            '${value.toInt()}$unit',
-                            style: const TextStyle(fontSize: 10),
-                          );
-                        },
-                      ),
-                    ),
-                  ),
-                  borderData: FlBorderData(show: true),
-                  lineBarsData: [
-                    LineChartBarData(
-                      spots: values.asMap().entries.map((entry) {
-                        return FlSpot(entry.key.toDouble(), entry.value);
-                      }).toList(),
-                      isCurved: true,
-                      color: color,
-                      barWidth: 3,
-                      dotData: const FlDotData(show: false),
-                      belowBarData: BarAreaData(
+              child: AnimatedBuilder(
+                animation: _lineAnimation,
+                builder: (context, child) {
+                  // Calculate how many points to show based on animation progress
+                  final totalPoints = values.length;
+                  final pointsToShow = (_lineAnimation.value * totalPoints).ceil();
+                  final visibleValues = values.take(pointsToShow).toList();
+                  final visibleLabels = labels.take(pointsToShow).toList();
+
+                  return LineChart(
+                    LineChartData(
+                      gridData: const FlGridData(show: true),
+                      titlesData: FlTitlesData(
                         show: true,
-                        color: color.withOpacity(0.1),
+                        rightTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                        topTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                        bottomTitles: AxisTitles(
+                          sideTitles: SideTitles(
+                            showTitles: true,
+                            getTitlesWidget: (value, meta) {
+                              final index = value.toInt();
+                              if (index >= 0 && index < visibleLabels.length) {
+                                return Text(
+                                  visibleLabels[index],
+                                  style: const TextStyle(fontSize: 10),
+                                );
+                              }
+                              return const Text('');
+                            },
+                          ),
+                        ),
+                        leftTitles: AxisTitles(
+                          sideTitles: SideTitles(
+                            showTitles: true,
+                            reservedSize: 40,
+                            getTitlesWidget: (value, meta) {
+                              return Text(
+                                '${value.toInt()}$unit',
+                                style: const TextStyle(fontSize: 10),
+                              );
+                            },
+                          ),
+                        ),
                       ),
+                      borderData: FlBorderData(show: true),
+                      lineBarsData: [
+                        LineChartBarData(
+                          spots: visibleValues.asMap().entries.map((entry) {
+                            return FlSpot(entry.key.toDouble(), entry.value);
+                          }).toList(),
+                          isCurved: true,
+                          color: color,
+                          barWidth: 3,
+                          dotData: FlDotData(
+                            show: pointsToShow > 0 && pointsToShow <= visibleValues.length,
+                            getDotPainter: (spot, percent, barData, index) {
+                              return FlDotCirclePainter(
+                                radius: 4,
+                                color: color,
+                                strokeWidth: 2,
+                                strokeColor: Colors.white,
+                              );
+                            },
+                          ),
+                          belowBarData: BarAreaData(
+                            show: true,
+                            color: color.withOpacity(0.1),
+                          ),
+                        ),
+                      ],
                     ),
-                  ],
-                ),
+                  );
+                },
               ),
             ),
           ],

@@ -26,8 +26,12 @@ class AdminDashboardScreen extends StatelessWidget {
           Stack(
             children: [
               IconButton(
-                icon: const Icon(Icons.notifications, color: Colors.black),
-                onPressed: () {},
+                icon: const Icon(Icons.notifications, color: Colors.white),
+                onPressed: () {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('This feature will be available in the next update')),
+                  );
+                },
               ),
               Positioned(
                 right: 11,
@@ -53,10 +57,6 @@ class AdminDashboardScreen extends StatelessWidget {
                 ),
               )
             ],
-          ),
-          IconButton(
-            icon: const Icon(Icons.logout, color: Colors.black),
-            onPressed: () {},
           ),
         ],
       ),
